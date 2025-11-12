@@ -79,13 +79,19 @@ jobs:
       - name: Create issue if protected files changed (no merge)
         if: steps.check.outputs.PROTECTED_CHANGED == 'true'
         uses: actions/github-script@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPSTREAM_REPO: ${{ env.UPSTREAM_REPO }}
+          CHANGED_LIST: ${{ steps.check.outputs.changed_list }}
+          CHANGED_FILES: ${{ steps.check.outputs.changed_files }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const changedList = `\${{ steps.check.outputs.changed_list }}`.trim();
-            const changedFiles = `\${{ steps.check.outputs.changed_files }}`.trim();
+            const changedList = (process.env.CHANGED_LIST || '').trim();
+            const changedFiles = (process.env.CHANGED_FILES || '').trim();
+            const upstream = process.env.UPSTREAM_REPO || '';
             const title = "Upstream update contains protected file changes";
-            const body = `The upstream repository '${{ env.UPSTREAM_REPO }}' has updates that modify protected files in branch 'master'.
+            const body = `The upstream repository '${upstream}' has updates that modify protected files in branch 'master'.
 
 Changed protected file(s):
 ${changedList}
@@ -97,8 +103,8 @@ This workflow did NOT merge upstream/master into origin/master. Please review up
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: title,
-              body: body
+              title,
+              body
             });
 
       - name: Merge upstream and push

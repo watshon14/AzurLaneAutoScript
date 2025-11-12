@@ -2,6 +2,7 @@
 
 ---
 # See submarine_gem_farming_update.md for submarine support
+# files are located at submarine_gem_farming folder for reference
 ---
 
 # AzurLaneAutoScript
